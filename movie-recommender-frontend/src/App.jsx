@@ -4,8 +4,12 @@ import axios from "axios";
 export default function App() {
   const [movie, setMovie] = useState("");
   const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(false); // Loading state
+  const [error, setError] = useState(""); // Error state
 
   const fetchRecommendations = async () => {
+    setLoading(true); // Start loading
+    setError(""); // Reset error message
     try {
       const response = await axios.post("http://127.0.0.1:5000/recommend", {
         movie: movie,
@@ -13,6 +17,9 @@ export default function App() {
       setRecommendations(response.data);
     } catch (error) {
       console.error("Error fetching recommendations:", error);
+      setError("Error fetching recommendations. Please try again later.");
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -26,13 +33,22 @@ export default function App() {
         value={movie}
         onChange={(e) => setMovie(e.target.value)}
       />
-      <button className="mt-2 bg-blue-500 px-4 py-2 rounded-md" onClick={fetchRecommendations}>
-        Get Recommendations
+      <button
+        className="mt-2 bg-blue-500 px-4 py-2 rounded-md"
+        onClick={fetchRecommendations}
+        disabled={loading} // Disable button when loading
+      >
+        {loading ? "Loading..." : "Get Recommendations"}
       </button>
+      {error && <p className="text-red-500 mt-2">{error}</p>} {/* Show error message */}
       <ul className="mt-4">
-        {recommendations.map((rec, index) => (
-          <li key={index} className="p-2">{rec}</li>
-        ))}
+        {recommendations.length > 0 ? (
+          recommendations.map((rec, index) => (
+            <li key={index} className="p-2">{rec}</li>
+          ))
+        ) : (
+          <li className="p-2 text-gray-400">No recommendations yet...</li> // Handle empty recommendations
+        )}
       </ul>
     </div>
   );
